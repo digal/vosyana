@@ -1,0 +1,135 @@
+package ru.dirty.skypebot.domain;
+
+import ru.dirty.skypebot.storage.DBManager;
+import ru.dirty.skypebot.logging.Logger;
+
+import java.util.List;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.sql.Timestamp;
+import java.sql.SQLException;
+
+import com.skype.Skype;
+import com.skype.SkypeException;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: Yuri.Buyanov
+ * Date: 07.04.2008
+ * Time: 15:50:17
+ */
+public class Chat extends SkypeEntity implements IChat{
+    private boolean isResponseEnabled;
+    private boolean isONNNEnabled;
+    private boolean isDefault;
+    private TagList tagList;
+    private HashMap<String, Integer> billing;
+    private List<Feed> feeds = new ArrayList<Feed>();
+
+    private int exitCost=0;
+
+    public void addFeed(Feed f) throws Exception {
+        Logger.getInstance().log("Adding feed "+f.getUrlString()+" to chat "+getSkypeId());
+        feeds.add(f);
+        f.setChat(Skype.getChatById(getSkypeId()));
+        f.activate();
+    }
+
+    public void addFeed(String url, String usr) throws Exception {
+        Logger.getInstance().log("Adding feed "+url+" to chat "+getSkypeId());
+        Feed f = new Feed(-1, getSkypeId(), usr, url, 1800, 300, new Timestamp(System.currentTimeMillis()));
+        DBManager.getInstance().insertFeedEntry(f);
+        feeds.add(f);
+        f.setChat(Skype.getChatById(getSkypeId()));
+        f.activate();
+    }
+
+    public boolean isResponseEnabled() {
+        return isResponseEnabled;
+    }
+
+    public void setResponseEnabled(boolean responseEnabled) {
+        isResponseEnabled = responseEnabled;
+    }
+
+    public boolean isONNNEnabled() {
+        return isONNNEnabled;
+    }
+
+    public void setONNNEnabled(boolean ONNNEnabled) {
+        isONNNEnabled = ONNNEnabled;
+    }
+
+    public int getExitCost() {
+        return exitCost;
+    }
+
+    public void setExitCost(int exitCost) {
+        this.exitCost = exitCost;
+        if (exitCost==0) {
+            billing = null;
+        } else {
+            billing = new HashMap<String, Integer>();
+        }
+    }
+
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(boolean aDefault) {
+        isDefault = aDefault;
+    }
+
+    public Tag addTag(String tag, String user) throws IllegalAccessException {
+        if (tagList == null) {
+            tagList = new TagList(getSkypeId());
+        }
+        return tagList.addTag(tag, user);
+    }
+
+    public List<Tag> getAllTags()  {
+        if (tagList == null) {
+            return null;
+        } else {
+            return tagList.getAllTags();
+        }
+    }
+
+    public String getTagsString() {
+        List<Tag> tags = getAllTags();
+        if (tags == null || tags.size() == 0) {
+            return "Здесь нет ни одной жепки";
+        }
+        StringBuffer sb = new StringBuffer("Облако тупой фигни: ");
+        for (int i = 0; i < tags.size(); i++) {
+            Tag t = tags.get(i);
+            sb.append(i==0 ? "" : " ").append(t.getContent());
+        }
+
+        return sb.toString();
+    }
+
+    public void setUserDebt(String userId, int debt) {
+        if (billing!=null && exitCost > 0) {
+            billing.remove(userId);
+            billing.put(userId, debt);
+        }
+    }
+
+    public int userExit(String userId) {
+        if (billing!=null && exitCost > 0) {
+            Integer i = billing.get(userId);
+            if (i==null) {
+                i = 0;
+                //billing.put(userId, i);
+            }
+            i+=exitCost;
+            billing.put(userId, i);
+            return i;
+        } else {
+            return 0;
+        }
+    }
+
+}

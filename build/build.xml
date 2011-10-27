@@ -1,0 +1,65 @@
+<project name="skypebot" default="release" basedir="..">
+    <property name="dir.src" value="src"/>
+    <property name="dir.out" value="out"/>
+    <property name="dir.build" value="build"/>
+    <property name="dir.data" value="data"/>
+    <property name="dir.sql" value="sql"/>
+    <property name="dir.scripts" value="scripts"/>
+    <property name="dir.release" value="${dir.out}/release"/>
+    <property name="dir.release.libs" value="${dir.release}/libs"/>
+    <property name="dir.release.data" value="${dir.release}/data"/>
+    <property name="dir.classes" value="${dir.out}/classes"/>
+    <property name="dir.libs" value="libs"/>
+    <property name="dir.libs.skype" value="${dir.libs}/skype"/>
+    <property name="file.jar" value="${dir.release}/${ant.project.name}.jar"/>
+    <property name="file.manifest" value="${dir.build}/m.mf"/>
+    <path id="project.classpath">
+        <fileset dir="${dir.libs.skype}/release/">
+            <include name="skype.jar"/>
+        </fileset>
+        <fileset dir="${dir.libs}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="skype">
+    	<mkdir dir="${dir.libs.skype}/release" />
+        <ant antfile="build.xml" target="jar" dir="${dir.libs.skype}"  />
+    </target>
+
+    <target name="compile" depends="skype">
+        <mkdir dir="${dir.out}" />
+        <mkdir dir="${dir.classes}" />
+            <javac srcdir="${dir.src}" destdir="${dir.classes}" target="1.5" verbose="false" debug="on" optimize="true">
+                <classpath>
+                    <path refid="project.classpath"/>
+                </classpath>
+             </javac>
+    </target>
+
+    <target name="release" depends="clean, compile">
+        <mkdir dir="${dir.release}"/>
+        <jar jarfile="${file.jar}" basedir="${dir.classes}" manifest="${file.manifest}/"/>
+        <copy todir="${dir.release.data}">
+            <fileset dir="${dir.data}" includes="*"/>
+        </copy>
+        <copy todir="${dir.release.libs}">
+            <fileset dir="${dir.libs.skype}/release" includes="skype.jar"/>
+            <fileset dir="${dir.libs}" includes="*.jar"/>
+        </copy>
+        <copy todir="${dir.release}">
+            <fileset dir="." includes="sql/*" />
+        </copy>
+        <copy todir="${dir.release}">
+            <fileset dir="${dir.scripts}" includes="*" />
+        </copy>
+    </target>
+
+    <target name="clean">
+        <delete dir="${dir.release}"/>
+        <delete dir="${dir.classes}" />
+        <ant antfile="build.xml" target="clean" dir="${dir.libs.skype}"  />
+
+    </target>
+
+</project>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<entry key="BotName">Восяня</entry>
+<entry key="ONNNVotes">5</entry>
+<entry key="ONNNRO">7</entry>
+<entry key="ONNNKick">15</entry>
+<entry key="master">echolote</entry>
+<!-- consumer key -->
+<entry key="twCkey"></entry>
+
+<!-- consumer secret -->
+<entry key="twCSecret"></entry>
+
+<!-- access token -->
+<entry key="twToken"></entry>
+
+<!-- access token secret -->
+<entry key="twSecret"></entry>
+
+
+</properties>
